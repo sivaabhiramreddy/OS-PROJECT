@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banker's Algorithm</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 800px;
+        }
+        h1 {
+            text-align: center;
+            color: #333333;
+        }
+        label {
+            display: block;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Banker's Algorithm</h1>
+        <label for="processes">Number of Processes:</label>
+        <input type="number" id="processes" min="1" max="10">
+
+        <label for="resources">Number of Resources:</label>
+        <input type="number" id="resources" min="1" max="10">
+
+        <label for="allocation">Allocation Matrix (comma-separated, row by row):</label>
+        <textarea id="allocation" placeholder="e.g., 0,1,0\n2,0,0\n3,0,2"></textarea>
+
+        <label for="max">Max Matrix (comma-separated, row by row):</label>
+        <textarea id="max" placeholder="e.g., 7,5,3\n3,2,2\n9,0,2"></textarea>
+
+        <label for="available">Available Resources (comma-separated):</label>
+        <input type="text" id="available" placeholder="e.g., 3,3,2">
+
+        <button onclick="runBankersAlgorithm()">Check Safe State</button>
+
+        <div class="output" id="output"></div>
+    </div>
+
+    <script>
+        function runBankersAlgorithm() {
+            const processes = parseInt(document.getElementById('processes').value);
+            const resources = parseInt(document.getElementById('resources').value);
+
+            const allocationInput = document.getElementById('allocation').value;
+            const maxInput = document.getElementById('max').value;
+            const availableInput = document.getElementById('available').value;
+
+            const allocation = parseMatrix(allocationInput, processes, resources);
+            const max = parseMatrix(maxInput, processes, resources);
+            const available = parseArray(availableInput, resources);
+
+            if (!allocation || !max || !available) {
+                document.getElementById('output').innerText = "Invalid input. Please check your matrices and try again.";
+                return;
+            }
+
+            const need = calculateNeed(processes, resources, allocation, max);
+
+            const result = isSafeState(processes, resources, allocation, need, available);
+            document.getElementById('output').innerText = result;
+        }
+
+        function parseMatrix(input, rows, cols) {
+            const matrix = input.split('\n').map(row => row.split(',').map(Number));
+            return (matrix.length === rows && matrix.every(row => row.length === cols && row.every(num => !isNaN(num)))) ? matrix : null;
+        }
+
+        function parseArray(input, size) {
+            const array = input.split(',').map(Number);
+            return array.length === size && array.every(num => !isNaN(num)) ? array : null;
+        }
+
+        function calculateNeed(processes, resources, allocation, max) {
+            const need = Array.from({ length: processes }, () => Array(resources).fill(0));
+            for (let i = 0; i < processes; i++) {
+                for (let j = 0; j < resources; j++) {
+                    need[i][j] = max[i][j] - allocation[i][j];
+                }
+            }
+            return need;
+        }
+
+        function isSafeState(processes, resources, allocation, need, available) {
+            const work = [...available];
+            const finish = Array(processes).fill(false);
+            const safeSequence = [];
+
+            let count = 0;
+            while (count < processes) {
+                let found = false;
+                for (let i = 0; i < processes; i++) {
+                    if (!finish[i]) {
+                        let canAllocate = true;
+                        for (let j = 0; j < resources; j++) {
+                            if (need[i][j] > work[j]) {
+                                canAllocate = false;
+                                break;
+                            }
+                        }
+
+                        if (canAllocate) {
+                            for (let j = 0; j < resources; j++) {
+                                work[j] += allocation[i][j];
+                            }
+                            safeSequence.push(i);
+                            finish[i] = true;
+                            found = true;
+                            count++;
+                        }
+                    }
+                }
+
+                if (!found) {
+                    return "The system is not in a safe state.";
+                }
+            }
+
+            return `The system is in a safe state.\nSafe sequence is: ${safeSequence.map(p => `P${p}`).join(' -> ')}`;
+        }
+    </script>
+</body>
+</html>
