@@ -1,174 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Banker's Algorithm</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .container {
-            background: #ffffff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 90%;
-            max-width: 800px;
-        }
-        h1 {
-            text-align: center;
-            color: #333333;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-            font-weight: bold;
-        }
-        input, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #cccccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-        }
-        button {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #007BFF;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            font-size: 16px;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .output {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #f9f9f9;
-            border: 1px solid #dddddd;
-            border-radius: 5px;
-            white-space: pre-wrap;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Banker's Algorithm Toolkit</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(to right, #e0f7fa, #ffffff);
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 50px auto;
+      background-color: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #2c3e50;
+      margin-bottom: 30px;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      color: #2e7d32;
+    }
+
+    textarea {
+      width: 100%;
+      height: 100px;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      resize: vertical;
+      background-color: #f9f9f9;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+      transition: border-color 0.3s ease;
+    }
+
+    textarea:focus {
+      border-color: #4caf50;
+      outline: none;
+      background-color: #fff;
+    }
+
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      background: linear-gradient(to right, #43cea2, #185a9d);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: linear-gradient(to right, #2ecc71, #3498db);
+    }
+
+    #result {
+      margin-top: 25px;
+      padding: 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      background-color: #f0fdf4;
+      border-left: 6px solid #4caf50;
+    }
+
+    #result strong {
+      color: #2e7d32;
+    }
+
+    #result.error {
+      background-color: #fff3f3;
+      border-left-color: #e53935;
+      color: #c62828;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Banker's Algorithm</h1>
-        <label for="processes">Number of Processes:</label>
-        <input type="number" id="processes" min="1" max="10">
 
-        <label for="resources">Number of Resources:</label>
-        <input type="number" id="resources" min="1" max="10">
+  <div class="container">
+    <h2>🛡️ Deadlock Prevention: Banker's Algorithm</h2>
 
-        <label for="allocation">Allocation Matrix (comma-separated, row by row):</label>
-        <textarea id="allocation" placeholder="e.g., 0,1,0\n2,0,0\n3,0,2"></textarea>
+    <label for="allocation">🔧 Allocation Matrix (rows = processes, cols = resources):</label>
+    <textarea id="allocation" placeholder="Example:&#10;0 1 0&#10;2 0 0&#10;3 0 2"></textarea>
 
-        <label for="max">Max Matrix (comma-separated, row by row):</label>
-        <textarea id="max" placeholder="e.g., 7,5,3\n3,2,2\n9,0,2"></textarea>
+    <label for="need">📌 Need Matrix (rows = processes, cols = resources):</label>
+    <textarea id="need" placeholder="Example:&#10;7 4 3&#10;1 2 2&#10;6 0 0"></textarea>
 
-        <label for="available">Available Resources (comma-separated):</label>
-        <input type="text" id="available" placeholder="e.g., 3,3,2">
+    <label for="available">📦 Available Resources (single row):</label>
+    <textarea id="available" placeholder="Example: 3 3 2"></textarea>
 
-        <button onclick="runBankersAlgorithm()">Check Safe State</button>
+    <button onclick="calculateSafeSequence()">🔍 Find Safe Sequence</button>
 
-        <div class="output" id="output"></div>
-    </div>
+    <div id="result"></div>
+  </div>
 
-    <script>
-        function runBankersAlgorithm() {
-            const processes = parseInt(document.getElementById('processes').value);
-            const resources = parseInt(document.getElementById('resources').value);
+  <script>
+    function parseMatrix(text) {
+      return text.trim().split("\n").map(row => row.trim().split(/\s+/).map(Number));
+    }
 
-            const allocationInput = document.getElementById('allocation').value;
-            const maxInput = document.getElementById('max').value;
-            const availableInput = document.getElementById('available').value;
+    function parseVector(text) {
+      return text.trim().split(/\s+/).map(Number);
+    }
 
-            const allocation = parseMatrix(allocationInput, processes, resources);
-            const max = parseMatrix(maxInput, processes, resources);
-            const available = parseArray(availableInput, resources);
+    function calculateSafeSequence() {
+      const allocation = parseMatrix(document.getElementById("allocation").value);
+      const need = parseMatrix(document.getElementById("need").value);
+      const available = parseVector(document.getElementById("available").value);
 
-            if (!allocation || !max || !available) {
-                document.getElementById('output').innerText = "Invalid input. Please check your matrices and try again.";
-                return;
-            }
+      const n = allocation.length;
+      const m = available.length;
 
-            const need = calculateNeed(processes, resources, allocation, max);
+      const finish = Array(n).fill(false);
+      const safeSeq = [];
+      const work = [...available];
 
-            const result = isSafeState(processes, resources, allocation, need, available);
-            document.getElementById('output').innerText = result;
+      let madeProgress;
+      do {
+        madeProgress = false;
+        for (let i = 0; i < n; i++) {
+          if (!finish[i] && need[i].every((val, j) => val <= work[j])) {
+            for (let j = 0; j < m; j++) work[j] += allocation[i][j];
+            finish[i] = true;
+            safeSeq.push(i);
+            madeProgress = true;
+          }
         }
+      } while (madeProgress);
 
-        function parseMatrix(input, rows, cols) {
-            const matrix = input.split('\n').map(row => row.split(',').map(Number));
-            return (matrix.length === rows && matrix.every(row => row.length === cols && row.every(num => !isNaN(num)))) ? matrix : null;
-        }
+      const resultDiv = document.getElementById("result");
+      if (safeSeq.length === n) {
+        resultDiv.className = '';
+        resultDiv.innerHTML = `<strong>✅ Safe Sequence Found:</strong> ${safeSeq.map(p => 'P' + p).join(' → ')}`;
+      } else {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `<strong>❌ System is in unsafe state. No safe sequence found.</strong>`;
+      }
+    }
+  </script>
 
-        function parseArray(input, size) {
-            const array = input.split(',').map(Number);
-            return array.length === size && array.every(num => !isNaN(num)) ? array : null;
-        }
-
-        function calculateNeed(processes, resources, allocation, max) {
-            const need = Array.from({ length: processes }, () => Array(resources).fill(0));
-            for (let i = 0; i < processes; i++) {
-                for (let j = 0; j < resources; j++) {
-                    need[i][j] = max[i][j] - allocation[i][j];
-                }
-            }
-            return need;
-        }
-
-        function isSafeState(processes, resources, allocation, need, available) {
-            const work = [...available];
-            const finish = Array(processes).fill(false);
-            const safeSequence = [];
-
-            let count = 0;
-            while (count < processes) {
-                let found = false;
-                for (let i = 0; i < processes; i++) {
-                    if (!finish[i]) {
-                        let canAllocate = true;
-                        for (let j = 0; j < resources; j++) {
-                            if (need[i][j] > work[j]) {
-                                canAllocate = false;
-                                break;
-                            }
-                        }
-
-                        if (canAllocate) {
-                            for (let j = 0; j < resources; j++) {
-                                work[j] += allocation[i][j];
-                            }
-                            safeSequence.push(i);
-                            finish[i] = true;
-                            found = true;
-                            count++;
-                        }
-                    }
-                }
-
-                if (!found) {
-                    return "The system is not in a safe state.";
-                }
-            }
-
-            return `The system is in a safe state.\nSafe sequence is: ${safeSequence.map(p => `P${p}`).join(' -> ')}`;
-        }
-    </script>
 </body>
 </html>
